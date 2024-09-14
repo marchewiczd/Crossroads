@@ -1,0 +1,29 @@
+﻿services:
+  crossroads:
+    container_name: crossroads.web
+    image: crossroads-web:latest
+    # PID and docker.sock allow for checking running container on docker host
+    pid: host
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "8401:8080"
+      - "8402:8081"
+
+  crossroads.api:
+    image: crossroads.api
+    build:
+      context: .
+      dockerfile: Crossroads.Api/Dockerfile
+
+  crossroads.testapi:
+    image: crossroads.testapi
+    build:
+      context: .
+      dockerfile: Crossroads.TestApi/Dockerfile
+
+  crossroads.webapi:
+    image: crossroads.webapi
+    build:
+      context: .
+      dockerfile: Crossroads.WebApi/Dockerfile
