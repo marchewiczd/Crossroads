@@ -6,9 +6,9 @@ namespace Crossroads.Utils.Docker;
 
 public class DockerStatus(string ipv4)
 {
-    public List<Container> GetContainerInformation(string tempParam)
+    public List<Container> GetContainerInformation(string containersInfoString)
     {
-        var list = tempParam.Split("\n");
+        var list = SplitContainersInfo(containersInfoString);
         var result = new List<Container>();
 
         foreach (var containerStatusString in list)
@@ -49,13 +49,9 @@ public class DockerStatus(string ipv4)
 
         return result;
     }
-    
-    public List<string> GetContainerInformationString()
-    {
-        // TODO: GET container info from web api
-        
-        return [];
-    }
+
+    private static List<string> SplitContainersInfo(string containersInfo) =>
+        containersInfo.Split("\n").ToList();
 
     private static Status GetContainerStatus(string statusString) =>
         statusString switch
