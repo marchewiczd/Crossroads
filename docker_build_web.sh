@@ -1,1 +1,0 @@
-docker build -t crossroads-web -f Crossroads.Web/Dockerfile .
