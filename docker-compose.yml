@@ -4,15 +4,18 @@
     image: crossroads-web:latest
     ports:
       - "80:8080"
-      - "8402:8081"
+      - "443:8081"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - CROSSROADS_API_CONTAINER="http://crossroads-api"
+      - CROSSROADS_API_PORT="8080"
 
   crossroads-api:
     container_name: crossroads.api
     image: crossroads-webapi:latest
     # PID and docker.sock allow for checking running container on docker host
     pid: host
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-    ports:
-      - "8403:8080"
-      - "8404:8081"
