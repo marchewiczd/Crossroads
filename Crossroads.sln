@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8FF143AD-9849-47DC-919C-041C7605B944}"
+	ProjectSection(SolutionItems) = preProject
+		docker-compose.yml = docker-compose.yml
+		docker_build.sh = docker_build.sh
+		.testdata = .testdata
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Crossroads.Utils", "Crossroads.Utils\Crossroads.Utils.csproj", "{A36E75D9-DA85-4337-BD94-73537BC746B7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Crossroads.Web", "Crossroads.Web\Crossroads.Web.csproj", "{ABD15C05-DF59-4201-918E-D6ED33EBC5B2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Crossroads.WebApi", "Crossroads.WebApi\Crossroads.WebApi.csproj", "{AC759993-2B42-4144-ACD7-653E91613CC0}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A36E75D9-DA85-4337-BD94-73537BC746B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A36E75D9-DA85-4337-BD94-73537BC746B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A36E75D9-DA85-4337-BD94-73537BC746B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A36E75D9-DA85-4337-BD94-73537BC746B7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ABD15C05-DF59-4201-918E-D6ED33EBC5B2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ABD15C05-DF59-4201-918E-D6ED33EBC5B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ABD15C05-DF59-4201-918E-D6ED33EBC5B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ABD15C05-DF59-4201-918E-D6ED33EBC5B2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AC759993-2B42-4144-ACD7-653E91613CC0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AC759993-2B42-4144-ACD7-653E91613CC0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AC759993-2B42-4144-ACD7-653E91613CC0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AC759993-2B42-4144-ACD7-653E91613CC0}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+	EndGlobalSection
+EndGlobal

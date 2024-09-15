@@ -1,0 +1,59 @@
+﻿@using Crossroads.Utils.Docker.Enums
+@using Crossroads.Utils.Docker.Models
+@{
+    ViewData["Title"] = "Crossroads - Dashboard";
+    var modelList = Model as List<Container>; 
+}
+
+<div class="text-center">
+    <h1 class="display-4">Dashboard</h1>
+    @if (modelList is not null)
+    {
+        <table class="table table-bordered table-responsive table-hover">
+            <tr>
+                <th>Name</th>
+                <th>Ipv4</th>
+                <th>Port</th>
+                <th>Status</th>
+                <th></th>
+            </tr>
+
+            @foreach (var item in modelList)
+            {
+                <tr>
+                    <td>@item.Name</td>
+                    <td>@item.Ipv4</td>
+                    <td>@item.Port</td>
+                    <td>@item.Status</td>
+                    
+                <td>@{
+                        var address = "http://" + item.Ipv4 + ":" + item.Port;
+                            switch (item.Status)
+                            {
+                                case Status.Running:
+                                    <img class="in-table" src="~/images/green-symbol.svg"/>
+                                    <a href="@address" target=”_blank”><img class="in-table" src="~/images/open-in-new-tab.png"/></a>
+                                    break;
+                                case Status.Paused:
+                                case Status.Created:
+                                case Status.Restarting:
+                                    <img class="in-table" src="~/images/yellow-symbol.svg"/>
+                                    break;
+                                case Status.Exited:
+                                case Status.Removing:
+                                case Status.Dead:
+                                    <img class="in-table" src="~/images/red-symbol.svg"/>
+                                    break;
+                                case Status.Unknown:
+                                    <img class="in-table" src="~/images/purple-symbol.svg"/>
+                                    break;
+                                default:
+                                    throw new ArgumentOutOfRangeException();
+                            }
+                        }
+                    </td>
+                </tr>
+            }
+        </table>
+    }
+</div>
