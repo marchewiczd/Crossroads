@@ -15,7 +15,10 @@
       "launchBrowser": true,
       "applicationUrl": "http://localhost:5198",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "CROSSROADS_API_SERVICE": "localhost",
+        "CROSSROADS_API_PORT": "5259",
+        "HOST_IP_ADDRESS": "192.168.0.33"
       }
     },
     "https": {

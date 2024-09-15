@@ -1,3 +1,5 @@
+using Crossroads.Utils.Services;
+
 namespace Crossroads.Web;
 
 public class Program
@@ -8,6 +10,7 @@ public class Program
 
         // Add services to the container.
         builder.Services.AddControllersWithViews();
+        builder.Services.AddSingleton<WebApiService>();
 
         var app = builder.Build();
 
@@ -19,7 +22,7 @@ public class Program
             app.UseHsts();
         }
 
-        //app.UseHttpsRedirection();
+        app.UseHttpsRedirection();
         app.UseStaticFiles();
 
         app.UseRouting();

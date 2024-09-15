@@ -20,3 +20,8 @@ html {
 body {
   margin-bottom: 60px;
 }
+
+img.in-table {
+  width: 35px;
+  height: 35px;
+}

@@ -21,4 +21,10 @@
       <ProjectReference Include="..\Crossroads.Utils\Crossroads.Utils.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Update="Database\crossroads.db">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
 </Project>
