@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Text.RegularExpressions;
 using Crossroads.Utils.Data;
 using Crossroads.Utils.Database.Models;
 using Crossroads.Utils.Docker.Enums;
@@ -7,7 +8,7 @@ using Environment = Crossroads.Utils.Helpers.Environment;
 
 namespace Crossroads.Utils.Docker;
 
-public class DockerStatus
+public partial class DockerStatus
 {
     private const int NameIndex = 0;
     private const int StatusIndex = 1;
@@ -27,45 +28,23 @@ public class DockerStatus
             Debug.WriteLine($"Parsing container information: {containerStatusString}");
             var containerInfoArray = containerStatusString.Split(',');
             ContainerDto? container;
-            var desc = GetDescriptionFromName(containerInfoArray[NameIndex], nameMapping, out var id, out var isMapped);
+            var desc = 
+                GetDescriptionFromName(containerInfoArray[NameIndex], nameMapping, out var id, out var isMapped);
+            var port = GetPort(containerInfoArray[PortIndex]);
             
-            switch (containerInfoArray.Length)
-            {
-                case NoIpLength:
-                    Debug.WriteLine("Detected string with length 3");
-                    container =
-                        new ContainerDto(
-                            id,
-                            desc, 
-                            string.Empty, 
-                            string.Empty, 
-                            GetContainerStatus(containerInfoArray[StatusIndex]),
-                            isMapped,
-                            containerInfoArray[ImageNameIndex]);
+            Debug.WriteLine("Detected string with length 3");
+            container =
+                new ContainerDto(
+                    id,
+                    desc, 
+                    string.IsNullOrEmpty(port) ? "" : ip, 
+                    port, 
+                    GetContainerStatus(containerInfoArray[StatusIndex]),
+                    isMapped,
+                    containerInfoArray[ImageNameIndex]);
                     
-                    result.Add(container);
-                    Debug.WriteLine($"Created container record: {container}");
-                    break;
-                
-                case NoIpLength + 1:
-                    Debug.WriteLine("Detected string with length 4");
-                    container = new ContainerDto(
-                        id,
-                        desc,
-                        ip,
-                        GetPort(containerInfoArray[PortIndex]),
-                        GetContainerStatus(containerInfoArray[StatusIndex]),
-                        isMapped,
-                        containerInfoArray[ImageNameIndex]);
-                    
-                    result.Add(container);
-                    Debug.WriteLine($"Created container record: {container}");
-                    break;
-                
-                default:
-                    Debug.WriteLine($"Unknown string, length of {containerInfoArray.Length} cannot be parsed");
-                    break;
-            }
+            result.Add(container);
+            Debug.WriteLine($"Created container record: {container}");
         }
 
         return result.ToList();
@@ -128,12 +107,16 @@ public class DockerStatus
             _ => Status.Unknown
         };
 
+    // regex: "(\d{4}|443|80)-" + remove last char
     private static string GetPort(string address)
     {
-        var arrowIndex = address.IndexOf('>');
-        if (arrowIndex == -1)
-            throw new ArgumentException("IP does not contain port");
-        
-        return address.Substring(arrowIndex - 5, 4);
+        var port = PortRegex().Match(address).Value;
+        if (string.IsNullOrEmpty(port))
+            return "";
+
+        return port.Remove(port.Length - 1);
     }
+
+    [GeneratedRegex("(\\d{4}|443|80)-")]
+    private static partial Regex PortRegex();
 }
