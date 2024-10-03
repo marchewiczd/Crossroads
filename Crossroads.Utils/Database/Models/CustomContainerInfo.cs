@@ -19,4 +19,7 @@ public record CustomContainerInfo
     
     [Column("status")]
     public required Status Status { get; init; }
+    
+    [Column("docker_image_name")]
+    public required string DockerImageName { get; init; }
 }

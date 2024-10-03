@@ -1,4 +1,5 @@
-﻿using Crossroads.Utils.Database;
+﻿using Crossroads.Utils.Data;
+using Crossroads.Utils.Database;
 using Crossroads.Utils.Database.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -25,10 +26,15 @@ public class MappingController(ILogger<MappingController> logger, CrossroadsCont
     }
     
     [HttpPost("/name", Name = "PostNameMapping")]
-    public async Task PostNameMappingAsync(DockerNameMapping mapping)
+    public async Task PostNameMappingAsync(DockerNameMappingDto dto)
     { 
-        logger.LogDebug("PostNameMappingAsync: {mapping}", mapping);
-        await crossroadsContext.DockerNameMappings.AddAsync(mapping);
+        logger.LogDebug("PostNameMappingAsync: {mapping}", dto);
+        await crossroadsContext.DockerNameMappings.AddAsync(new DockerNameMapping
+        {
+            Id = 0,
+            ContainerName = dto.ContainerName!,
+            Description = dto.Description!
+        });
         await crossroadsContext.SaveChangesAsync();
     }
     
@@ -45,6 +51,20 @@ public class MappingController(ILogger<MappingController> logger, CrossroadsCont
         logger.LogDebug("GetCustomContainerInfoAsync: {name}", container);
         return await crossroadsContext.CustomContainerInfos
             .FirstAsync(entry => entry.ContainerName == container);
+    }
+    
+    [HttpDelete("/name", Name = "DeleteNameMapping")]
+    public async Task<bool> DeleteNameMapping([FromQuery(Name = "id")] int id)
+    { 
+        logger.LogDebug("DeleteNameMapping: {id}", id);
+        var recordToDelete = await crossroadsContext.DockerNameMappings.FindAsync(id);
+        
+        if (recordToDelete is null) 
+            return false;
+        
+        crossroadsContext.DockerNameMappings.Remove(recordToDelete);
+        return await crossroadsContext.SaveChangesAsync() == 1;
+
     }
     
     [HttpPost("/custom", Name = "PostCustomContainerInfo")]

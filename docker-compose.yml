@@ -1,7 +1,7 @@
 ﻿services:
-  crossroads-web:
-    container_name: crossroads.web
-    image: crossroads-web:latest
+  crossroads-webui:
+    container_name: crossroads.webui
+    image: crossroads-webui:latest
     ports:
       - "80:8080"
       - "443:8081"

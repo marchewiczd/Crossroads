@@ -37,6 +37,12 @@ public class WebApiService : IDisposable
         await _httpClient.PostAsJsonAsync($"{_baseUri}{resource}", data);
     }
 
+    public async Task<bool> DeleteAsync(string resource, int id)
+    {
+        var response = await _httpClient.DeleteAsync($"{_baseUri}{resource}?id={id}");
+        return await response.Content.ReadFromJsonAsync<bool>();
+    }
+
     private bool SetBaseUri()
     {
         var useHttps = 

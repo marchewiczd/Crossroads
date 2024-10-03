@@ -1,0 +1,70 @@
+﻿@page "/add-mapping"
+
+@using Crossroads.Utils.Data
+@using Crossroads.WebUI.Services
+
+
+@inject IContainerService customerService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Crossroads - Add mapping</PageTitle>
+
+<h1>Add new container name mapping</h1>
+
+<br>
+<EditForm id="create-customer-form" EditContext="editContext" OnValidSubmit="@HandleValidSubmit">
+    <div class="form-group">
+        <label for="description">Description</label>
+        <InputText id="description" placeholder="Description" class="form-control" @bind-Value="mapping.Description"/>
+    </div>
+    <br>
+    <div class="form-group">
+        <label for="containerName">Container Name</label>
+        <InputText id="containerName" placeholder="ContainerName" class="form-control" @bind-Value="mapping.ContainerName"/>
+    </div>
+    <br>
+    <button type="submit" @onclick="ResetValidation" class="btn btn-primary">Submit</button>
+</EditForm>
+
+@if (_mappingCreated)
+{
+    <h2>Mapping @{mapping.Description} for @{mapping.ContainerName} has been created!</h2>
+}
+
+
+@code {
+
+    private DockerNameMappingDto mapping = new();
+    private EditContext? editContext;
+    private ValidationMessageStore? messageStore;
+    
+    private bool _mappingCreated = false;
+    
+    protected override void OnInitialized()
+    {
+        editContext = new(mapping);
+        messageStore = new(editContext);
+    }
+    
+    private async Task HandleValidSubmit()
+    {
+        await customerService.CreateMapping(mapping);
+        _mappingCreated = true;
+    }
+
+    private void ResetPage()
+    {
+        NavigationManager.NavigateTo(NavigationManager.Uri, true);
+    }
+
+    private void ResetValidation()
+    {
+        if (editContext!.IsModified())
+        {
+            messageStore?.Clear();
+            editContext = new(mapping);
+            messageStore = new(editContext);
+        }
+    }
+
+}

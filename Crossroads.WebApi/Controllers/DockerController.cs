@@ -15,7 +15,9 @@ public class DockerController(ILogger<DockerController> logger) : ControllerBase
         return await System.IO.File.ReadAllTextAsync(Path.Combine(Environment.CurrentDirectory, "..", ".testdata"));
 #else
         logger.LogDebug("GetContainers");
-        return await LinuxShell.RunCommandAsync("docker", "ps -a --format \"{{.Names}},{{.Ports}},{{.Status}}\"");
+        return await LinuxShell.RunCommandAsync("docker", "ps -a --format \"{{.Names}},{{.Status}},{{.Image}},{{.Ports}}\"");
 #endif
     }
+    
+    // TODO: add support for controlling containers
 }

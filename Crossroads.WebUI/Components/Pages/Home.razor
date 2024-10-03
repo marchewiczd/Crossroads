@@ -1,0 +1,110 @@
+﻿@page "/"
+
+@using Crossroads.Utils.Data
+@using Crossroads.Utils.Docker.Enums
+@using Crossroads.WebUI.Services
+
+@inject IContainerService ContainerService
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JsRuntime
+
+<PageTitle>Crossroads - containers</PageTitle>
+
+@if (_containers == null)
+{
+<p>
+    <em>Loading...</em>
+</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+        <tr>
+            <th scope="col">Name</th>
+            <th scope="col">Docker Image</th>
+            <th scope="col">Ipv4</th>
+            <th scope="col">Port</th>
+            <th scope="col">Status</th>
+            <th scope="col"></th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var container in _containers)
+        {
+            <tr>
+                <td>@container.Name</td>
+                <td>@container.DockerImage</td>
+                <td>@container.Ipv4</td>
+                <td>@container.Port</td>
+                <td>@container.Status</td>
+                <td>
+                    @{
+                        var address = "http://" + container.Ipv4 + ":" + container.Port;
+                        switch (container.Status)
+                        {
+                            case Status.Running:
+                                <img alt="" class="in-table" src="images/green-symbol.svg"/>
+                                <button @onclick="() => NavigationManager.NavigateTo(address)" type="button" class="btn btn-info">Open</button>
+                                break;
+
+                            case Status.Paused:
+                            case Status.Created:
+                            case Status.Restarting:
+                                <img alt="" class="in-table" src="images/yellow-symbol.svg"/>
+                                break;
+
+                            case Status.Exited:
+                            case Status.Removing:
+                            case Status.Dead:
+                                <img alt="" class="in-table" src="images/red-symbol.svg"/>
+                                break;
+
+                            case Status.Unknown:
+                                <img alt="" class="in-table" src="images/purple-symbol.svg"/>
+                                break;
+
+                            default:
+                                throw new ArgumentOutOfRangeException();
+                        }
+
+                        if (container.IsMapped)
+                        {
+                            <button @onclick='() => Delete(container)' type="button" class="btn btn-danger">Remove mapping</button>
+                        }
+                        else
+                        {
+                            <button @onclick='() => NavigationManager.NavigateTo("add-mapping")' type="button" class="btn btn-success">Add mapping</button>
+                        }
+                    }
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+
+@code {
+
+    [Parameter]
+    public int CustomerId { get; set; }
+
+    private List<ContainerDto>? _containers;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _containers = (await ContainerService.GetAllAsync()).ToList();
+    }
+
+    private async Task Delete(ContainerDto dto)
+    {
+        if (!await JsRuntime.InvokeAsync<bool>("confirm", $"Are you sure you want to delete mapping for container '{dto.Name}'?"))
+            return;
+    
+        var deleted = await ContainerService.DeleteAsync(dto!.MappingId);
+        if (deleted)
+        {
+            NavigationManager.NavigateTo(NavigationManager.Uri, true);
+        }
+    }
+}

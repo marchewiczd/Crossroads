@@ -1,96 +1,62 @@
 ﻿using System.Diagnostics;
+using Crossroads.Utils.Data;
 using Crossroads.Utils.Database.Models;
 using Crossroads.Utils.Docker.Enums;
-using Crossroads.Utils.Docker.Models;
 using Crossroads.Utils.Helpers.Enums;
 using Environment = Crossroads.Utils.Helpers.Environment;
 
 namespace Crossroads.Utils.Docker;
 
-public class DockerStatus()
+public class DockerStatus
 {
-    public List<Container> GetContainerInformation(string containersInfoString)
-    {
-        var ip = Environment.GetVariable(Variable.HostIpAddress);
-        var list = SplitContainersInfo(containersInfoString);
-        var result = new List<Container>();
-
-        foreach (var containerStatusString in list)
-        {
-            Debug.WriteLine($"Parsing container information: {containerStatusString}");
-            var containerInfoArray = containerStatusString.Split(',');
-            Container? container;
-
-            switch (containerInfoArray.Length)
-            {
-                case 3:
-                    Debug.WriteLine("Detected string with length 3");
-                    container =
-                        new Container(
-                            containerInfoArray[0], 
-                            string.Empty, 
-                            string.Empty, 
-                            GetContainerStatus(containerInfoArray[2]));
-                    
-                    result.Add(container);
-                    Debug.WriteLine($"Created container record: {container}");
-                    break;
-                
-                case 4:
-                    Debug.WriteLine("Detected string with length 4");
-                    container = new Container(
-                        containerInfoArray[0],
-                        ip,
-                        GetPort(containerInfoArray[1]),
-                        GetContainerStatus(containerInfoArray[3]));
-                    
-                    result.Add(container);
-                    Debug.WriteLine($"Created container record: {container}");
-                    break;
-                
-                default:
-                    Debug.WriteLine($"Unknown string, length of {containerInfoArray.Length} cannot be parsed");
-                    break;
-            }
-        }
-
-        return result;
-    }    
+    private const int NameIndex = 0;
+    private const int StatusIndex = 1;
+    private const int ImageNameIndex = 2;
+    private const int PortIndex = 3;
+    private const int NoIpLength = 4;
     
-    public List<Container> GetContainerModel(string containersInfoString, List<DockerNameMapping> nameMapping)
+    //ps -a --format \"{{.Names}},{{.Status}},{{.Image}},{{.Ports}}\"
+    public List<ContainerDto> GetContainerModel(string containersInfoString, List<DockerNameMapping> nameMapping)
     {
         var ip = Environment.GetVariable(Variable.HostIpAddress);
         var list = SplitContainersInfo(containersInfoString);
-        var result = new List<Container>();
+        var result = new List<ContainerDto>();
 
         foreach (var containerStatusString in list)
         {
             Debug.WriteLine($"Parsing container information: {containerStatusString}");
             var containerInfoArray = containerStatusString.Split(',');
-            Container? container;
-
+            ContainerDto? container;
+            var desc = GetDescriptionFromName(containerInfoArray[NameIndex], nameMapping, out var id, out var isMapped);
+            
             switch (containerInfoArray.Length)
             {
-                case 3:
+                case NoIpLength:
                     Debug.WriteLine("Detected string with length 3");
                     container =
-                        new Container(
-                            GetDescriptionFromName(containerInfoArray[0], nameMapping), 
+                        new ContainerDto(
+                            id,
+                            desc, 
                             string.Empty, 
                             string.Empty, 
-                            GetContainerStatus(containerInfoArray[2]));
+                            GetContainerStatus(containerInfoArray[StatusIndex]),
+                            isMapped,
+                            containerInfoArray[ImageNameIndex]);
                     
                     result.Add(container);
                     Debug.WriteLine($"Created container record: {container}");
                     break;
                 
-                case 4:
+                case NoIpLength + 1:
                     Debug.WriteLine("Detected string with length 4");
-                    container = new Container(
-                        GetDescriptionFromName(containerInfoArray[0], nameMapping),
+                    container = new ContainerDto(
+                        id,
+                        desc,
                         ip,
-                        GetPort(containerInfoArray[1]),
-                        GetContainerStatus(containerInfoArray[3]));
+                        GetPort(containerInfoArray[PortIndex]),
+                        GetContainerStatus(containerInfoArray[StatusIndex]),
+                        isMapped,
+                        containerInfoArray[ImageNameIndex]);
                     
                     result.Add(container);
                     Debug.WriteLine($"Created container record: {container}");
@@ -105,30 +71,51 @@ public class DockerStatus()
         return result.ToList();
     }
     
-    public List<Container> GetCustomContainerModel(
+    public List<ContainerDto> GetCustomContainerModel(
         List<CustomContainerInfo> customContainers, 
         List<DockerNameMapping> nameMapping)
     {
         var ip = Environment.GetVariable(Variable.HostIpAddress);
-        var result = new List<Container>();
+        var result = new List<ContainerDto>();
 
         foreach (var containerInfo in customContainers)
         {
             Debug.WriteLine($"Parsing custom container information: {containerInfo}");
+            var desc = GetDescriptionFromName(containerInfo.ContainerName, nameMapping, out var id, out var isMapped);
 
-            result.Add(new Container(
-                GetDescriptionFromName(containerInfo.ContainerName, nameMapping),
+            result.Add(new ContainerDto(
+                id,
+                desc,
                 ip,
                 containerInfo.Port,
-                containerInfo.Status));
+                containerInfo.Status,
+                isMapped,
+                containerInfo.DockerImageName));
         }
 
         return result.ToList();
     }
     
-    private static string GetDescriptionFromName(string containerName, List<DockerNameMapping> nameMapping) => 
-        nameMapping.FirstOrDefault(mapping => mapping.ContainerName == containerName)?.Description ?? containerName;
+    private static string GetDescriptionFromName(
+        string containerName, 
+        List<DockerNameMapping> nameMapping, 
+        out int mappingId, 
+        out bool isMapped)
+    {
+        var mapIndex = nameMapping.FindIndex(mapping => mapping.ContainerName == containerName);
+        
+        if (mapIndex == -1)
+        {
+            mappingId = -1;
+            isMapped = false;
+            return containerName;
+        }
 
+        mappingId = nameMapping[mapIndex].Id;
+        isMapped = true;
+        return nameMapping[mapIndex].Description;
+    }
+        
     private static List<string> SplitContainersInfo(string containersInfo) =>
         containersInfo.Split("\n").ToList();
 

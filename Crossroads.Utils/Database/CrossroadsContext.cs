@@ -31,12 +31,12 @@ public class CrossroadsContext : DbContext
         var path = string.Empty;
         if (dir.Contains("source") || dir.Contains("repo") || dir.Contains("repos"))
         {
-            path = Path.Combine(dir, "bin", "Debug", "net7.0", "Database", "Northwind.db");
+            path = Path.Combine(dir, "bin", "Debug", "net7.0", "Database", "crossroads.db");
         }
         else
         {
             // Running in the <project> directory.
-            path = Path.Combine(dir, "Database", "Northwind.db");
+            path = Path.Combine(dir, "Database", "crossroads.db");
         }
         _logger.LogDebug("Database path: {path}", path);
         
