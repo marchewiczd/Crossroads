@@ -45,7 +45,7 @@ else
                         {
                             case Status.Running:
                                 <img alt="" class="in-table" src="images/green-symbol.svg"/>
-                                <button @onclick="() => NavigationManager.NavigateTo(address)" type="button" class="btn btn-info">Open</button>
+                                <button @onclick="@(async () => await JsRuntime.InvokeVoidAsync("open", address, "_blank"))" type="button" class="btn btn-info">Open</button>
                                 break;
 
                             case Status.Paused:
