@@ -12,21 +12,8 @@ public class ContainerService(
 {
     private readonly DockerStatus _dockerStatus = new(dockerStatusLogger);
 
-    public async Task<bool> CreateMapping(DockerNameMappingDto mapping)
-    {
-        try
-        {
-            await apiService.PostAsync("api/name", mapping);
-        }
-        catch (Exception e)
-        {
-            logger.LogError("Exception was thrown when creating mapping: {message}, stack trace: {innerException}", 
-                e.Message, e.InnerException);
-            return false;
-        }
-
-        return true;
-    }
+    public async Task<bool> CreateMapping(DockerNameMappingDto mapping) =>
+        await apiService.PostAsync("api/name", mapping);
 
     public Task<ContainerDto?> GetAsync(int id)
     {

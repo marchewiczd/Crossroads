@@ -21,9 +21,10 @@ public class WebApiService(ILogger<WebApiService> logger) : IWebApiService
         return await response.Content.ReadFromJsonAsync<T>() ?? new T();
     }
 
-    public async Task PostAsync<T>(string resource, T data)
+    public async Task<bool> PostAsync<T>(string resource, T data)
     {
-        await _httpClient.PostAsJsonAsync($"{_baseUri}{resource}", data);
+        var result = await _httpClient.PostAsJsonAsync($"{_baseUri}{resource}", data);
+        return await result.Content.ReadFromJsonAsync<bool>();
     }
 
     public async Task<bool> DeleteAsync(string resource, int id)

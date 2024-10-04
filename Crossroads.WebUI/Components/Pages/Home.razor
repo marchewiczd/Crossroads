@@ -98,7 +98,9 @@ else
 
     private async Task Delete(ContainerDto dto)
     {
-        if (!await JsRuntime.InvokeAsync<bool>("confirm", $"Are you sure you want to delete mapping for container '{dto.Name}'?"))
+        if (!await JsRuntime.InvokeAsync<bool>(
+                "confirm", 
+                $"Are you sure you want to delete mapping for container '{dto.Name}'?"))
             return;
     
         var deleted = await ContainerService.DeleteAsync(dto!.MappingId);

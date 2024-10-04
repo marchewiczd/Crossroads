@@ -3,24 +3,23 @@
 @using Crossroads.Utils.Data
 @using Crossroads.WebUI.Services
 
-
-@inject IContainerService customerService
-@inject NavigationManager NavigationManager
+@inject IContainerService CustomerService
+@inject IJSRuntime JsRuntime
 
 <PageTitle>Crossroads - Add mapping</PageTitle>
 
 <h1>Add new container name mapping</h1>
 
 <br>
-<EditForm id="create-customer-form" EditContext="editContext" OnValidSubmit="@HandleValidSubmit">
+<EditForm id="create-customer-form" EditContext="_editContext" OnValidSubmit="@HandleValidSubmit">
     <div class="form-group">
         <label for="description">Description</label>
-        <InputText id="description" placeholder="Description" class="form-control" @bind-Value="mapping.Description"/>
+        <InputText id="description" placeholder="Description" class="form-control" @bind-Value="_mapping.Description"/>
     </div>
     <br>
     <div class="form-group">
         <label for="containerName">Container Name</label>
-        <InputText id="containerName" placeholder="ContainerName" class="form-control" @bind-Value="mapping.ContainerName"/>
+        <InputText id="containerName" placeholder="ContainerName" class="form-control" @bind-Value="_mapping.ContainerName"/>
     </div>
     <br>
     <button type="submit" @onclick="ResetValidation" class="btn btn-primary">Submit</button>
@@ -29,43 +28,43 @@
 @if (_mappingCreated)
 {
     <br>
-    <h3>Mapping @(mapping.Description) for @(mapping.ContainerName) has been created!</h3>
+    <h3>Mapping @(_mapping.Description) for @(_mapping.ContainerName) has been created!</h3>
 }
 
 
 @code {
 
-    private DockerNameMappingDto mapping = new();
-    private EditContext? editContext;
-    private ValidationMessageStore? messageStore;
+    private readonly DockerNameMappingDto _mapping = new();
+    private EditContext? _editContext;
+    private ValidationMessageStore? _messageStore;
     
-    private bool _mappingCreated = false;
+    private bool _mappingCreated;
     
     protected override void OnInitialized()
     {
-        editContext = new(mapping);
-        messageStore = new(editContext);
+        _editContext = new EditContext(_mapping);
+        _messageStore = new ValidationMessageStore(_editContext);
     }
     
     private async Task HandleValidSubmit()
     {
-        await customerService.CreateMapping(mapping);
-        _mappingCreated = true;
-    }
-
-    private void ResetPage()
-    {
-        NavigationManager.NavigateTo(NavigationManager.Uri, true);
+        _mappingCreated = await CustomerService.CreateMapping(_mapping);
+        if (!_mappingCreated)
+        {
+            await JsRuntime.InvokeVoidAsync(
+                "window.alert",
+                "Mapping was not created due to duplicate values.");
+        }
     }
 
     private void ResetValidation()
     {
-        if (editContext!.IsModified())
-        {
-            messageStore?.Clear();
-            editContext = new(mapping);
-            messageStore = new(editContext);
-        }
+        if (!_editContext!.IsModified()) 
+            return;
+        
+        _messageStore?.Clear();
+        _editContext = new EditContext(_mapping);
+        _messageStore = new ValidationMessageStore(_editContext);
     }
 
 }

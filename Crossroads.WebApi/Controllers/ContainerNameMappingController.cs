@@ -27,17 +27,24 @@ public class ContainerNameMappingController(
             .GetAsync<DockerNameMapping>(entry => entry.ContainerName.Equals(container));
     }
     
-    // todo: name should be unique
     [HttpPost(Name = "PostNameMapping")]
-    public async Task PostNameMappingAsync([FromBody] DockerNameMappingDto dto)
+    public async Task<bool> PostNameMappingAsync([FromBody] DockerNameMappingDto dto)
     { 
         logger.LogDebug("PostNameMappingAsync: {mapping}", dto);
+        var foundDuplicate = await crossroadsContext
+            .GetAsync<DockerNameMapping>(entry => entry.ContainerName.Equals(dto.ContainerName));
+
+        if (foundDuplicate is not null)
+            return false;
+        
         await crossroadsContext.InsertAsync(new DockerNameMapping
         {
             Id = 0,
             ContainerName = dto.ContainerName!,
             Description = dto.Description!
         });
+
+        return true;
     }
     
     [HttpDelete(Name = "DeleteNameMapping")]

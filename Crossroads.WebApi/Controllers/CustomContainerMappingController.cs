@@ -27,9 +27,17 @@ public class CustomContainerMappingController(
     }
     
     [HttpPost(Name = "PostCustomContainerInfo")]
-    public async Task PostCustomContainerInfoAsync([FromBody] CustomContainerInfo customInfo)
+    public async Task<bool> PostCustomContainerInfoAsync([FromBody] CustomContainerInfo customInfo)
     { 
         logger.LogDebug("PostCustomContainerInfoAsync: {customInfo}", customInfo);
+        var foundDuplicate = await crossroadsContext
+            .GetAsync<CustomContainerInfo>(entry => entry.ContainerName.Equals(customInfo.ContainerName));
+
+        if (foundDuplicate is not null)
+            return false;
+        
         await crossroadsContext.InsertAsync(customInfo);
+
+        return true;
     }
 }
