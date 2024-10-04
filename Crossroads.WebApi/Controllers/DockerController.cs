@@ -4,10 +4,10 @@ using Microsoft.AspNetCore.Mvc;
 namespace Crossroads.WebApi.Controllers;
 
 [ApiController]
-[Route("[controller]")]
+[Route("api/containers")]
 public class DockerController(ILogger<DockerController> logger) : ControllerBase
 {
-    [HttpGet("/containers", Name = "GetContainers")]
+    [HttpGet(Name = "GetContainers")]
     public async Task<string> GetContainers()
     { 
 #if DEBUG

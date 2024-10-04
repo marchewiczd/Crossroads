@@ -1,32 +1,26 @@
-﻿using Crossroads.Utils.Data;
-using Crossroads.Utils.Database.Models;
+﻿using Crossroads.Database.Entities;
+using Crossroads.Utils.Data;
 using Crossroads.Utils.Docker;
-using Crossroads.Utils.Services;
 
 namespace Crossroads.WebUI.Services;
 
-public class ContainerService : IContainerService
+public class ContainerService(
+    ILogger<ContainerService> logger,
+    ILogger<DockerStatus> dockerStatusLogger,
+    IWebApiService apiService)
+    : IContainerService
 {
-    private readonly ILogger<ContainerService> _logger;
-    private readonly WebApiService _apiService;
-    private readonly DockerStatus _dockerStatus;
+    private readonly DockerStatus _dockerStatus = new(dockerStatusLogger);
 
-    public ContainerService(ILogger<ContainerService> logger, WebApiService apiService)
-    {
-        _logger = logger;
-        _apiService = apiService;
-        _dockerStatus = new DockerStatus();
-    }
-    
     public async Task<bool> CreateMapping(DockerNameMappingDto mapping)
     {
         try
         {
-            await _apiService.PostAsync("name", mapping);
+            await apiService.PostAsync("api/name", mapping);
         }
         catch (Exception e)
         {
-            _logger.LogError("Exception was thrown when creating mapping: {message}, stack trace: {innerException}", 
+            logger.LogError("Exception was thrown when creating mapping: {message}, stack trace: {innerException}", 
                 e.Message, e.InnerException);
             return false;
         }
@@ -41,15 +35,16 @@ public class ContainerService : IContainerService
 
     public async Task<IEnumerable<ContainerDto>> GetAllAsync()
     {
-        var containersInfo = await _apiService.GetAsync("containers");
-        var customMapping = await _apiService.GetAsync<List<CustomContainerInfo>>("custom");
-        var nameMapping = await _apiService.GetAsync<List<DockerNameMapping>>("name");
+        var containersInfo = await apiService.GetAsync("api/containers");
+        logger.LogDebug("Container string: {content}", containersInfo);
+        
+        var customMapping = await apiService.GetAsync<List<CustomContainerInfo>>("api/custom/all");
+        var nameMapping = await apiService.GetAsync<List<DockerNameMapping>>("api/name/all");
         
         var containerList = _dockerStatus.GetCustomContainerModel(customMapping, nameMapping);
         containerList.AddRange(_dockerStatus.GetContainerModel(containersInfo, nameMapping));
         
-        _logger.LogDebug("Response content: {content}", containersInfo);
-        _logger.LogDebug("Container list: {containerList}", containerList);
+        logger.LogDebug("Container list: {containerList}", containerList);
 
         return containerList;
     }
@@ -65,11 +60,11 @@ public class ContainerService : IContainerService
         
         try
         {
-            result = await _apiService.DeleteAsync("name", id);
+            result = await apiService.DeleteAsync("api/name", id);
         }
         catch (Exception e)
         {
-            _logger.LogError("Exception was thrown when creating mapping: {message}, stack trace: {innerException}", 
+            logger.LogError("Exception was thrown when creating mapping: {message}, stack trace: {innerException}", 
                 e.Message, e.InnerException);
             return false;
         }
