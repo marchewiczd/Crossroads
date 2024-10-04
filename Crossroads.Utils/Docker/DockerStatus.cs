@@ -1,22 +1,20 @@
-﻿using System.Diagnostics;
-using System.Text.RegularExpressions;
+﻿using Crossroads.Database.Entities;
+using Crossroads.Database.Entities.Enums;
 using Crossroads.Utils.Data;
-using Crossroads.Utils.Database.Models;
-using Crossroads.Utils.Docker.Enums;
+using Crossroads.Utils.Helpers;
 using Crossroads.Utils.Helpers.Enums;
+using Microsoft.Extensions.Logging;
 using Environment = Crossroads.Utils.Helpers.Environment;
 
 namespace Crossroads.Utils.Docker;
 
-public partial class DockerStatus
+public class DockerStatus(ILogger<DockerStatus> logger)
 {
     private const int NameIndex = 0;
     private const int StatusIndex = 1;
     private const int ImageNameIndex = 2;
     private const int PortIndex = 3;
-    private const int NoIpLength = 4;
-    
-    //ps -a --format \"{{.Names}},{{.Status}},{{.Image}},{{.Ports}}\"
+
     public List<ContainerDto> GetContainerModel(string containersInfoString, List<DockerNameMapping> nameMapping)
     {
         var ip = Environment.GetVariable(Variable.HostIpAddress);
@@ -25,26 +23,31 @@ public partial class DockerStatus
 
         foreach (var containerStatusString in list)
         {
-            Debug.WriteLine($"Parsing container information: {containerStatusString}");
+            logger.LogDebug("Parsing container information: {status}.", containerStatusString);
+            logger.LogDebug("Length: {length}", containerStatusString.Length);
+            
+            if (string.IsNullOrWhiteSpace(containerStatusString))
+            {
+                logger.LogDebug("Empty string detected, skipping.");
+                continue;
+            }
+            
             var containerInfoArray = containerStatusString.Split(',');
-            ContainerDto? container;
-            var desc = 
-                GetDescriptionFromName(containerInfoArray[NameIndex], nameMapping, out var id, out var isMapped);
+            var descriptionDto = 
+                GetDescriptionFromName(containerInfoArray[NameIndex], nameMapping);
             var port = GetPort(containerInfoArray[PortIndex]);
             
-            Debug.WriteLine("Detected string with length 3");
-            container =
-                new ContainerDto(
-                    id,
-                    desc, 
-                    string.IsNullOrEmpty(port) ? "" : ip, 
-                    port, 
-                    GetContainerStatus(containerInfoArray[StatusIndex]),
-                    isMapped,
-                    containerInfoArray[ImageNameIndex]);
+            var container = new ContainerDto(
+                descriptionDto.MappingId,
+                descriptionDto.Description, 
+                string.IsNullOrEmpty(port) ? "" : ip, 
+                port, 
+                GetContainerStatus(containerInfoArray[StatusIndex]),
+                descriptionDto.IsMapped,
+                containerInfoArray[ImageNameIndex]);
                     
             result.Add(container);
-            Debug.WriteLine($"Created container record: {container}");
+            logger.LogDebug("Created container record: {container}", container);
         }
 
         return result.ToList();
@@ -59,40 +62,32 @@ public partial class DockerStatus
 
         foreach (var containerInfo in customContainers)
         {
-            Debug.WriteLine($"Parsing custom container information: {containerInfo}");
-            var desc = GetDescriptionFromName(containerInfo.ContainerName, nameMapping, out var id, out var isMapped);
+            logger.LogDebug("Parsing custom container information: {info}", containerInfo);
+            var descriptionDto = 
+                GetDescriptionFromName(containerInfo.ContainerName, nameMapping);
 
             result.Add(new ContainerDto(
-                id,
-                desc,
+                descriptionDto.MappingId,
+                descriptionDto.Description,
                 ip,
                 containerInfo.Port,
                 containerInfo.Status,
-                isMapped,
+                descriptionDto.IsMapped,
                 containerInfo.DockerImageName));
         }
 
         return result.ToList();
     }
     
-    private static string GetDescriptionFromName(
+    private static DescriptionDto GetDescriptionFromName(
         string containerName, 
-        List<DockerNameMapping> nameMapping, 
-        out int mappingId, 
-        out bool isMapped)
+        List<DockerNameMapping> nameMapping)
     {
         var mapIndex = nameMapping.FindIndex(mapping => mapping.ContainerName == containerName);
-        
-        if (mapIndex == -1)
-        {
-            mappingId = -1;
-            isMapped = false;
-            return containerName;
-        }
 
-        mappingId = nameMapping[mapIndex].Id;
-        isMapped = true;
-        return nameMapping[mapIndex].Description;
+        return mapIndex == -1
+            ? new DescriptionDto(-1, false, containerName)
+            : new DescriptionDto(nameMapping[mapIndex].Id, true, nameMapping[mapIndex].Description);
     }
         
     private static List<string> SplitContainersInfo(string containersInfo) =>
@@ -107,16 +102,9 @@ public partial class DockerStatus
             _ => Status.Unknown
         };
 
-    // regex: "(\d{4}|443|80)-" + remove last char
     private static string GetPort(string address)
     {
-        var port = PortRegex().Match(address).Value;
-        if (string.IsNullOrEmpty(port))
-            return "";
-
-        return port.Remove(port.Length - 1);
+        var port = RegexHelper.Port().Match(address).Value;
+        return string.IsNullOrEmpty(port) ? "" : port.Remove(port.Length - 1);
     }
-
-    [GeneratedRegex("(\\d{4}|443|80)-")]
-    private static partial Regex PortRegex();
 }

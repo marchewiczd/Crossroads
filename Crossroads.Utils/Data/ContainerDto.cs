@@ -1,4 +1,4 @@
-﻿using Crossroads.Utils.Docker.Enums;
+﻿using Crossroads.Database.Entities.Enums;
 
 namespace Crossroads.Utils.Data;
 
