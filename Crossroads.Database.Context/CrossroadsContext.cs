@@ -63,12 +63,15 @@ public class CrossroadsContext : DbContext, ICrossroadsContext
 
     #region Access methods
 
-    public T? Get<T>(object key) where T : TableBase
+    public async Task<T?> GetAsync<T>(object key) where T : TableBase
     {
-        var record = GetDbSet<T>()?.Find(key);
-        return record;
+        var dbSet = GetDbSet<T>();
+        return dbSet is null ? null : await dbSet.FindAsync(key);;
     }
-    
+
+    public T? Get<T>(object key) where T : TableBase => 
+        GetDbSet<T>()?.Find(key);
+
     public List<T>? GetAll<T>() where T : TableBase => 
         GetDbSet<T>()?.ToList();
 
@@ -112,7 +115,7 @@ public static class CrossroadsExtensions
     public static IServiceCollection AddCrossroadsContext(this IServiceCollection services, string relativePath = ".")
     {
         var databasePath = Path.Combine(relativePath, "Database", "crossroads.db");
-        services.AddDbContext<CrossroadsContext>(options =>
+        services.AddDbContext<ICrossroadsContext, CrossroadsContext>(options =>
         {
             options.UseSqlite($"Data Source={databasePath}");
             options.LogTo(Console.WriteLine, // Console
