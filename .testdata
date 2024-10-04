@@ -1,4 +1,5 @@
 cicd-agent-1,Exited (143) 3 weeks ago,atlassian/bamboo-agent-base,
 cicd-db-1,Created,postgres,
-cicd-bamboo-1,Up 2 weeks,adminer,0.0.0.0:8205->8080/tcp, :::8205->8080/tcp
+cicd-bamboo-1,Up 2 weeks,adminer,0.0.0.0:8205->8080/tcp, :::8205->8080/
+
 crossroads.api,Up 5 minutes,crossroads-webapi:latest,8080-8081/tcp
