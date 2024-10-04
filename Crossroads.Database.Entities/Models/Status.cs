@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace Crossroads.Utils.Docker.Enums;
+namespace Crossroads.Database.Entities.Enums;
 
 public enum Status
 {

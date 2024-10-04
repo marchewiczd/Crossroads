@@ -1,10 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Crossroads.Database.Entities.Abstractions;
 
-namespace Crossroads.Context.Entities;
+namespace Crossroads.Database.Entities;
 
 [Table("docker_name_mapping")]
-public record DockerNameMapping
+public record DockerNameMapping : TableBase
 {
     [Key]
     [Column("id")]

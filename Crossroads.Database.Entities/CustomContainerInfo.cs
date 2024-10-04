@@ -1,11 +1,12 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Crossroads.Utils.Docker.Enums;
+using Crossroads.Database.Entities.Abstractions;
+using Crossroads.Database.Entities.Enums;
 
-namespace Crossroads.Context.Entities;
+namespace Crossroads.Database.Entities;
 
 [Table("custom_container_info")]
-public record CustomContainerInfo
+public record CustomContainerInfo : TableBase
 {
     [Key]
     [Column("id")]

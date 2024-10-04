@@ -1,14 +1,18 @@
-﻿using Crossroads.Context.Entities;
+﻿using System.Reflection;
+using Crossroads.Database.Entities;
+using Crossroads.Database.Entities.Abstractions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace Crossroads.Context;
+namespace Crossroads.Database.Context;
 
-public class CrossroadsContext : DbContext
+public class CrossroadsContext : DbContext, ICrossroadsContext
 {
     private readonly ILogger<CrossroadsContext> _logger;
-    
+
+    #region Constructors
+
     public CrossroadsContext(ILogger<CrossroadsContext> logger)
     {
         _logger = logger;
@@ -19,9 +23,19 @@ public class CrossroadsContext : DbContext
     {
         _logger = logger;
     }
+
+    #endregion
+
+    #region DbSets
+    // ReSharper disable UnusedMember.Local
     
-    public DbSet<DockerNameMapping> DockerNameMappings { get; set; }
-    public DbSet<CustomContainerInfo> CustomContainerInfos { get; set; }
+    private DbSet<DockerNameMapping> DockerNameMappings { get; init; }
+    private DbSet<CustomContainerInfo> CustomContainerInfos { get; init; }
+    
+    // ReSharper restore UnusedMember.Local
+    #endregion
+
+    #region Configuration
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -29,7 +43,7 @@ public class CrossroadsContext : DbContext
             return;
         
         var dir = Environment.CurrentDirectory;
-        var path = string.Empty;
+        string path;
         
         if (dir.Contains("source") || dir.Contains("repo") || dir.Contains("repos"))
         {
@@ -44,6 +58,53 @@ public class CrossroadsContext : DbContext
         
         optionsBuilder.UseSqlite($"Filename={path}");
     }
+
+    #endregion
+
+    #region Access methods
+
+    public T? Get<T>(object key) where T : TableBase
+    {
+        var record = GetDbSet<T>()?.Find(key);
+        return record;
+    }
+    
+    public List<T>? GetAll<T>() where T : TableBase => 
+        GetDbSet<T>()?.ToList();
+
+    public bool Delete<T>(object key) where T : TableBase
+    {
+        var dbSet = GetDbSet<T>();
+        var record = dbSet?.Find(key);
+
+        if (dbSet is null || record is null) 
+            return false;
+        
+        dbSet.Remove(record);
+        SaveChanges();
+            
+        return true;
+    }
+        
+    public new bool Update<T>(T record) where T : TableBase
+    {
+        var dbSet = GetDbSet<T>();
+
+        if (dbSet is null)
+            return false;
+
+        dbSet.Update(record);
+        return true;
+    }
+
+    #endregion
+
+    #region Private methods
+
+    private DbSet<T>? GetDbSet<T>() where T : TableBase =>
+        GetType().GetProperty(typeof(T).Name, BindingFlags.NonPublic | BindingFlags.Instance)?.GetValue(this, null) as DbSet<T>;
+
+    #endregion
 }
 
 public static class CrossroadsExtensions
