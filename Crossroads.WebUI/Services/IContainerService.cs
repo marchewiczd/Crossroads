@@ -1,5 +1,4 @@
 ﻿using Crossroads.Utils.Data;
-using Crossroads.Utils.Database.Models;
 
 namespace Crossroads.WebUI.Services;
 

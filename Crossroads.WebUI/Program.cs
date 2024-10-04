@@ -1,6 +1,6 @@
-using Crossroads.Utils.Services;
 using Crossroads.WebUI.Components;
 using Crossroads.WebUI.Services;
+using WebApiService = Crossroads.WebUI.Services.WebApiService;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,7 +9,7 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddSingleton<IContainerService, ContainerService>();
-builder.Services.AddSingleton<WebApiService>();
+builder.Services.AddSingleton<IWebApiService, WebApiService>();
 
 var app = builder.Build();
 
