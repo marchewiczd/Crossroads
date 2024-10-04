@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Crossroads.Utils.Database.Models;
+namespace Crossroads.Context.Entities;
 
 [Table("docker_name_mapping")]
 public record DockerNameMapping

@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using Crossroads.Utils.Docker.Enums;
 
-namespace Crossroads.Utils.Database.Models;
+namespace Crossroads.Context.Entities;
 
 [Table("custom_container_info")]
 public record CustomContainerInfo

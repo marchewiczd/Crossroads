@@ -1,9 +1,9 @@
-﻿using Crossroads.Utils.Database.Models;
+﻿using Crossroads.Context.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace Crossroads.Utils.Database;
+namespace Crossroads.Context;
 
 public class CrossroadsContext : DbContext
 {
@@ -25,10 +25,12 @@ public class CrossroadsContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        if (optionsBuilder.IsConfigured) return;
+        if (optionsBuilder.IsConfigured) 
+            return;
         
         var dir = Environment.CurrentDirectory;
         var path = string.Empty;
+        
         if (dir.Contains("source") || dir.Contains("repo") || dir.Contains("repos"))
         {
             path = Path.Combine(dir, "bin", "Debug", "net7.0", "Database", "crossroads.db");
